@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 fn partition<T: Ord>(slice: &mut [T]) -> usize {
     let mut pivot_index = 0;
 
@@ -45,21 +47,66 @@ fn collatz_step((num, step): (i32, i32)) -> (i32, i32) {
     }
 }
 
-fn collatz<'a>(num: &'a i32) -> i32 {
-    let mut next = (*num, 0);
-    while next.0 != 1 {
-        next = collatz_step(next)
+/// Calculates the number of steps to arrive from n to 1
+fn collatz<'a>(num: &'a i32, map: &mut HashMap<i32, i32>) -> i32 {
+    if *num < 1 {
+        return *num;
     }
-    next.1
+
+    let mut next = (*num, 0);
+
+    while next.0 != 1 {
+        match map.get(&next.0) {
+            Some(n) => {
+                next = (1, next.1 + n);
+                return next.1;
+            }
+            _ => {
+                next = collatz_step(next);
+            }
+        }
+    }
+
+    // stopping time is the number of steps to arrive to 1
+    let stopping_time = next.1;
+    // the cycle length required is the total number of
+    // numbers generated when going from n to 1, including 1
+    let cycle_length = stopping_time + 1;
+
+    // save to hashMap that for this number, the steps down to 1 is next.1
+    map.insert(*num, cycle_length);
+
+    cycle_length
 }
 
+#[test]
+fn collatz_test() {
+    let mut results: HashMap<i32, i32> = HashMap::new();
+    assert_eq!(collatz(&123, &mut results), 47);
+    assert_eq!(collatz(&2123, &mut results), 33);
+    assert_eq!(collatz(&27, &mut results), 112);
+    assert_eq!(collatz(&871, &mut results), 179);
+}
+
+// TODO: upgrade to i64
 fn main() {
-    let mut arr: [i32; 6] = [2, 1, 4, 3, 9, 7];
+    // get the args
+    let args = std::env::args().skip(1);
+    let bounds: Vec<i32> = args.take(2).map(|x| x.parse::<i32>().unwrap()).collect();
 
-    let num = 27;
+    // create a HashMap to look up values
+    let mut results: HashMap<i32, i32> = HashMap::new();
+    // store results as we move up the range
+    let mut values: Vec<i32> = Vec::new();
 
-    println!("Before {:?}", arr);
-    quicksort::<i32>(&mut arr[..]);
-    println!("Sorted {:?}", arr);
-    println!("Steps collatz {}", collatz(&num));
+    for num in bounds[0]..=bounds[1] {
+        let value = collatz(&num, &mut results);
+        values.push(value);
+    }
+
+    quicksort(&mut values);
+
+    let last = values.last().unwrap();
+
+    println!("{} {} {}", bounds[0], bounds[1], last);
 }
