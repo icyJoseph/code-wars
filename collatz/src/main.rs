@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::io;
+use std::io::prelude::*;
 
 fn partition<T: Ord>(slice: &mut [T]) -> usize {
     let mut pivot_index = 0;
@@ -41,7 +43,7 @@ fn quicksort<T: Ord>(slice: &mut [T]) {
 /// For the space of possible a_0, the last digit of 3*n + 1
 /// is always even, so we can shortcut one step by dividing
 /// (3 * n + 1) / 2, and counting the operation as two steps
-fn collatz_step((num, step): (i32, i32)) -> (i32, i32) {
+fn collatz_step((num, step): (i64, i64)) -> (i64, i64) {
     match num % 2 {
         0 => (num / 2, step + 1),
         _ => ((3 * num + 1) / 2, step + 2),
@@ -49,7 +51,7 @@ fn collatz_step((num, step): (i32, i32)) -> (i32, i32) {
 }
 
 /// Calculates the number of steps to arrive from n to 1
-fn collatz<'a>(num: &'a i32, map: &mut HashMap<i32, i32>) -> i32 {
+fn collatz<'a>(num: &'a i64, map: &mut HashMap<i64, i64>) -> i64 {
     if *num < 1 {
         return *num;
     }
@@ -83,11 +85,11 @@ fn collatz<'a>(num: &'a i32, map: &mut HashMap<i32, i32>) -> i32 {
 /// Given a range from low to high, inclusive, returns
 /// the longest collatz cycle, defined as the number of
 /// numbers generated to arrive from n to 1, including 1.
-fn longest_cycle_in_range(low: i32, high: i32) -> i32 {
+fn longest_cycle_in_range(low: i64, high: i64) -> i64 {
     // create a HashMap to look up values
-    let mut results: HashMap<i32, i32> = HashMap::new();
+    let mut results: HashMap<i64, i64> = HashMap::new();
     // store results as we move up the range
-    let mut values: Vec<i32> = Vec::new();
+    let mut values: Vec<i64> = Vec::new();
 
     for num in low..=high {
         let value = collatz(&num, &mut results);
@@ -100,18 +102,37 @@ fn longest_cycle_in_range(low: i32, high: i32) -> i32 {
 }
 
 fn main() {
+    let mut args: Vec<(i64, i64)> = Vec::new();
     // get the args
-    let args = std::env::args().skip(1);
-    let bounds: Vec<i32> = args.take(2).map(|x| x.parse::<i32>().unwrap()).collect();
+    for line in io::stdin().lock().lines() {
+        let parsed = line.unwrap();
+        let split: Vec<&str> = parsed.split(|c| c == ' ').collect();
 
-    let last = longest_cycle_in_range(bounds[0], bounds[1]);
+        if split.len() != 2 {
+            break;
+        }
 
-    println!("{} {} {}", bounds[0], bounds[1], last);
+        let bounds: Vec<i64> = split
+            .iter()
+            .map(|x| match x.parse::<i64>() {
+                Ok(n) => n,
+                _ => 0,
+            })
+            .collect();
+
+        args.push((bounds[0], bounds[1]));
+    }
+
+    for (low, high) in args.iter() {
+        assert!(low < high, "{} is not less than {}", low, high);
+        let cycle_length = longest_cycle_in_range(*low, *high);
+        println!("{} {} {}", low, high, cycle_length);
+    }
 }
 
 #[test]
 fn test_collatz() {
-    let mut results: HashMap<i32, i32> = HashMap::new();
+    let mut results: HashMap<i64, i64> = HashMap::new();
 
     assert_eq!(collatz(&123, &mut results), 47);
     assert_eq!(collatz(&2123, &mut results), 33);
