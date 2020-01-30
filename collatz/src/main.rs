@@ -11,6 +11,7 @@ fn partition<T: Ord>(slice: &mut [T]) -> usize {
     }
 
     slice.swap(pivot_index, slice.len() - 1);
+
     pivot_index
 }
 
@@ -79,34 +80,49 @@ fn collatz<'a>(num: &'a i32, map: &mut HashMap<i32, i32>) -> i32 {
     cycle_length
 }
 
-#[test]
-fn collatz_test() {
-    let mut results: HashMap<i32, i32> = HashMap::new();
-    assert_eq!(collatz(&123, &mut results), 47);
-    assert_eq!(collatz(&2123, &mut results), 33);
-    assert_eq!(collatz(&27, &mut results), 112);
-    assert_eq!(collatz(&871, &mut results), 179);
-}
-
-// TODO: upgrade to i64
-fn main() {
-    // get the args
-    let args = std::env::args().skip(1);
-    let bounds: Vec<i32> = args.take(2).map(|x| x.parse::<i32>().unwrap()).collect();
-
+/// Given a range from low to high, inclusive, returns
+/// the longest collatz cycle, defined as the number of
+/// numbers generated to arrive from n to 1, including 1.
+fn longest_cycle_in_range(low: i32, high: i32) -> i32 {
     // create a HashMap to look up values
     let mut results: HashMap<i32, i32> = HashMap::new();
     // store results as we move up the range
     let mut values: Vec<i32> = Vec::new();
 
-    for num in bounds[0]..=bounds[1] {
+    for num in low..=high {
         let value = collatz(&num, &mut results);
         values.push(value);
     }
 
     quicksort(&mut values);
 
-    let last = values.last().unwrap();
+    *values.last().unwrap()
+}
+
+fn main() {
+    // get the args
+    let args = std::env::args().skip(1);
+    let bounds: Vec<i32> = args.take(2).map(|x| x.parse::<i32>().unwrap()).collect();
+
+    let last = longest_cycle_in_range(bounds[0], bounds[1]);
 
     println!("{} {} {}", bounds[0], bounds[1], last);
+}
+
+#[test]
+fn test_collatz() {
+    let mut results: HashMap<i32, i32> = HashMap::new();
+
+    assert_eq!(collatz(&123, &mut results), 47);
+    assert_eq!(collatz(&2123, &mut results), 33);
+    assert_eq!(collatz(&27, &mut results), 112);
+    assert_eq!(collatz(&871, &mut results), 179);
+}
+
+#[test]
+fn test_longest_cycle_in_range() {
+    assert_eq!(longest_cycle_in_range(0, 10), 20);
+    assert_eq!(longest_cycle_in_range(0, 100), 119);
+    assert_eq!(longest_cycle_in_range(0, 1_000), 179);
+    assert_eq!(longest_cycle_in_range(0, 10_000), 262);
 }
