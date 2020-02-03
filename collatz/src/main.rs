@@ -85,20 +85,23 @@ fn collatz<'a>(num: &'a i64, map: &mut HashMap<i64, i64>) -> i64 {
 /// Given a range from low to high, inclusive, returns
 /// the longest collatz cycle, defined as the number of
 /// numbers generated to arrive from n to 1, including 1.
-fn longest_cycle_in_range(low: i64, high: i64) -> i64 {
+fn cycle_calc_factory() -> Box<dyn FnMut(i64, i64) -> i64> {
     // create a HashMap to look up values
     let mut results: HashMap<i64, i64> = HashMap::new();
-    // store results as we move up the range
-    let mut values: Vec<i64> = Vec::new();
 
-    for num in low..=high {
-        let value = collatz(&num, &mut results);
-        values.push(value);
-    }
+    Box::new(move |low, high| {
+        // store results as we move up the range
+        let mut values: Vec<i64> = Vec::new();
 
-    quicksort(&mut values);
+        for num in low..=high {
+            let value = collatz(&num, &mut results);
+            values.push(value);
+        }
 
-    *values.last().unwrap()
+        quicksort(&mut values);
+
+        *values.last().unwrap()
+    })
 }
 
 fn main() {
@@ -123,6 +126,8 @@ fn main() {
         args.push((bounds[0], bounds[1]));
     }
 
+    let mut longest_cycle_in_range = cycle_calc_factory();
+
     for (low, high) in args.iter() {
         assert!(low < high, "{} is not less than {}", low, high);
         let cycle_length = longest_cycle_in_range(*low, *high);
@@ -133,7 +138,6 @@ fn main() {
 #[test]
 fn test_collatz() {
     let mut results: HashMap<i64, i64> = HashMap::new();
-
     assert_eq!(collatz(&123, &mut results), 47);
     assert_eq!(collatz(&2123, &mut results), 33);
     assert_eq!(collatz(&27, &mut results), 112);
@@ -141,7 +145,8 @@ fn test_collatz() {
 }
 
 #[test]
-fn test_longest_cycle_in_range() {
+fn test_cycle_calc_factory() {
+    let mut longest_cycle_in_range = cycle_calc_factory();
     assert_eq!(longest_cycle_in_range(0, 10), 20);
     assert_eq!(longest_cycle_in_range(0, 100), 119);
     assert_eq!(longest_cycle_in_range(0, 1_000), 179);
