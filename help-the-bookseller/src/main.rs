@@ -54,23 +54,41 @@ fn stock_list(list_art: Vec<&str>, list_cat: Vec<&str>) -> String {
     return result.join(" - ");
 }
 
-fn dotest(list_art: Vec<&str>, list_cat: Vec<&str>, exp: &str) -> () {
-    println!("list_art: {:?};", list_art);
-    println!("list_cat: {:?};", list_cat);
-    let ans = stock_list(list_art, list_cat);
-    println!("actual:\n{:?};", ans);
-    println!("expect:\n{:?};", exp);
-    println!("{};", ans == exp);
-    assert_eq!(ans, exp);
-    println!("{};", "-");
+fn main() {
+    let books = vec!["BBAR 150", "CDXE 515", "BKWR 250", "BTSQ 890", "DRTY 600"];
+    let categories = vec!["A", "B", "C", "D"];
+    let result = stock_list(books, categories);
+
+    println!("{}", result);
 }
 
-fn main() {
-    let mut b = vec!["BBAR 150", "CDXE 515", "BKWR 250", "BTSQ 890", "DRTY 600"];
-    let mut c = vec!["A", "B", "C", "D"];
-    dotest(b, c, "(A : 0) - (B : 1290) - (C : 515) - (D : 600)");
+#[test]
+fn test_stock_list() {
+    let books = vec!["ABAR 200", "CDXE 500", "BKWR 250", "BTSQ 890", "DRTY 600"];
+    let categories = vec!["A", "B"];
+    assert_eq!(stock_list(books, categories), "(A : 200) - (B : 1140)");
+}
 
-    b = vec!["ABAR 200", "CDXE 500", "BKWR 250", "BTSQ 890", "DRTY 600"];
-    c = vec!["A", "B"];
-    dotest(b, c, "(A : 200) - (B : 1140)");
+#[test]
+fn test_empty_lists() {
+    let mut books = vec![];
+    let mut categories = vec!["A", "B"];
+
+    assert_eq!(stock_list(books, categories), "");
+
+    books = vec!["ABAR 200", "CDXE 500", "BKWR 250", "BTSQ 890", "DRTY 600"];
+    categories = vec![];
+
+    assert_eq!(stock_list(books, categories), "");
+}
+
+#[test]
+fn test_category_without_books() {
+    let books = vec!["CDXE 500", "BKWR 250", "BTSQ 890", "DRTY 600"];
+    let categories = vec!["A", "B", "C", "D"];
+
+    assert_eq!(
+        stock_list(books, categories),
+        "(A : 0) - (B : 1140) - (C : 500) - (D : 600)"
+    );
 }
