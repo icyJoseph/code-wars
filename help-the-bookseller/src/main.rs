@@ -1,57 +1,25 @@
-use std::collections::HashMap;
-
-fn parse_books(books: Vec<&str>) -> Vec<(String, u64)> {
-    let mut result: Vec<(String, u64)> = Vec::new();
-    for book in books.iter() {
-        let split: Vec<String> = book.split(" ").map(|x| x.to_string()).collect();
-        let (code, points) = (split[0].to_string(), split[1].parse::<u64>().unwrap());
-        result.push((code, points));
-    }
-    return result;
-}
-
 fn stock_list(list_art: Vec<&str>, list_cat: Vec<&str>) -> String {
-    // your code
     if list_art.len() == 0 || list_cat.len() == 0 {
         return "".to_string();
     }
 
-    let mut stock: HashMap<String, u64> = HashMap::new();
+    let results: Vec<String> = list_cat
+        .iter()
+        .map(|category| {
+            let category_points = &list_art
+                .iter()
+                .filter(|book| book.starts_with(category))
+                .fold(0, |acc, book| {
+                    let split: Vec<String> = book.split(" ").map(|x| x.to_string()).collect();
+                    let points = split[1].parse::<u64>().unwrap();
+                    return acc + points;
+                });
 
-    let parsed_books = parse_books(list_art);
+            return format!("({} : {})", category, category_points);
+        })
+        .collect();
 
-    for cat in &list_cat {
-        stock.insert(cat.to_string(), 0);
-    }
-
-    for parsed_book in parsed_books {
-        let (book, points) = parsed_book;
-        let category = match book.get(0..1) {
-            Some(val) => val.to_string(),
-            None => "".to_string(),
-        };
-
-        let current = match stock.get(&category) {
-            Some(val) => *val,
-            None => 0,
-        };
-
-        stock.insert(category, points + current);
-    }
-
-    let mut result = Vec::new();
-
-    for cat in &list_cat {
-        let value = match stock.get(*cat) {
-            Some(v) => *v,
-            None => 0,
-        };
-
-        let print = "(".to_string() + cat + " : " + &value.to_string() + ")";
-        result.push(print);
-    }
-
-    return result.join(" - ");
+    return results.join(" - ");
 }
 
 fn main() {
