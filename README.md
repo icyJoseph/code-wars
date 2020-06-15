@@ -1,5 +1,3 @@
-# Code Wars
+# Rust Coding Challenges
 
-Some of my solutions to Code Wars using Rust.
-
-
+This repository contains Code Wars Katas and problems from the Programming Challanges book by Steven Skiena and Miguel Revilla.
