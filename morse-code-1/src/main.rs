@@ -65,40 +65,20 @@ impl MorseDecoder {
     fn decode_morse(&self, encoded: &str) -> String {
         let dict = &self.morse_code;
 
-        let iterable: Vec<String> = encoded.chars().map(|x| x.to_string()).collect();
-
-        let mut result = String::from("");
-        let mut carry = String::from("");
-        let mut acc = String::from("");
-
-        for item in iterable {
-            acc.push_str(&item);
-
-            match dict.get(&acc) {
-                Some(letter) => {
-                    carry = letter.to_string();
-                }
-                None => match dict.get(&item) {
-                    Some(letter) => {
-                        carry = letter.to_string();
-                    }
-                    None => {
-                        result.push_str(&*carry);
-                        result.push_str(">");
-                        carry.clear();
-                        acc.clear();
-                    }
-                },
-            }
-        }
-
-        result.push_str(&*carry);
-
-        return result
-            .replace(">>>", " ")
-            .replace(">", "")
+        let decoded: String = encoded
             .trim()
-            .to_string();
+            .split("   ")
+            .into_iter()
+            .map(|word| {
+                word.split(' ')
+                    .filter_map(|letter| dict.get(letter))
+                    .fold("".to_string(), |acc, curr| acc + curr)
+                    .to_string()
+            })
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        return decoded;
     }
 }
 
