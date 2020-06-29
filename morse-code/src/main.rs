@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 struct MorseDecoder {
     morse_code: HashMap<String, String>,
@@ -70,7 +70,7 @@ impl MorseDecoder {
             .split("   ")
             .into_iter()
             .map(|word| {
-                word.split(' ')
+                word.split(" ")
                     .filter_map(|letter| dict.get(letter))
                     .fold("".to_string(), |acc, curr| acc + curr)
                     .to_string()
@@ -80,12 +80,84 @@ impl MorseDecoder {
 
         return decoded;
     }
+
+    fn decode_bits(&self, stream: &str) -> String {
+        let trimmed_stream: String = stream
+            .trim_start_matches("0")
+            .trim_end_matches("0")
+            .to_string();
+
+        let mut str_vector: Vec<Vec<char>> = vec![];
+
+        let mut carry: Vec<char> = vec![];
+        let mut last = trimmed_stream.chars().next().unwrap();
+
+        for (index, char) in trimmed_stream.chars().enumerate() {
+            if char == last {
+                carry.push(char);
+            } else {
+                str_vector.push(carry.clone());
+                carry.clear();
+                carry.push(char)
+            }
+            last = char;
+            if index == trimmed_stream.len() - 1 {
+                str_vector.push(carry.clone());
+            }
+        }
+
+        let lengths: HashSet<usize> = str_vector.iter().map(|x| x.len()).collect();
+
+        // strictly speaking, lengths should be L = K + 3 * M + 7 * N
+        // where K is the number of the lesser length present in lengths
+        // M is the middle length and N is the greatest, that means that lengths should
+        // have only 3 elements
+
+        let mut sampling_rate: usize = *lengths.iter().next().unwrap();
+
+        for length in lengths.iter() {
+            if *length < sampling_rate {
+                sampling_rate = *length;
+            }
+        }
+
+        let mut unpacked: Vec<&str> = vec![];
+
+        for vector in str_vector.iter() {
+            let units = vector.len() / sampling_rate;
+            let bit = vector.iter().next().unwrap();
+
+            match units {
+                1 => {
+                    if bit == &'1' {
+                        unpacked.push(".");
+                    }
+                }
+                3 => {
+                    if bit == &'1' {
+                        unpacked.push("-");
+                    } else {
+                        unpacked.push(" ");
+                    }
+                }
+                7 => {
+                    unpacked.push("   ");
+                }
+                _ => {
+                    println!("Strange unit");
+                }
+            }
+        }
+
+        return unpacked.join("");
+    }
 }
 
 pub fn main() {
     let decoder = MorseDecoder::new();
     let message = decoder.decode_morse(".... . -.--   .--- ..- -.. .");
     println!("{}", message);
+    println!("{}", decoder.decode_morse(&decoder.decode_bits("1100110011001100000011000000111111001100111111001111110000000000000011001111110011111100111111000000110011001111110000001111110011001100000011")));
 }
 
 #[test]
