@@ -1,5 +1,5 @@
 [package]
-name = "morse-code-1"
+name = "morse-code"
 version = "0.1.0"
 authors = ["Joseph Chamochumbi <sephxd1234@gmail.com>"]
 edition = "2018"
