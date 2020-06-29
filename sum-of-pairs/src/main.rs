@@ -3,12 +3,21 @@ use std::collections::HashSet;
 fn sum_pairs(ints: &[i8], s: i8) -> Option<(i8, i8)> {
     let complements: HashSet<i8> = ints.iter().map(|x| s - x).collect();
 
-    let mut weight = (ints.len() - 1) + (ints.len() - 2);
+    let length = ints.len();
+    // distance of a pair to the index-0
+    // the worse pair is made up of the last two elements
+    let mut weight = (length - 1) + (length - 2);
     let mut result = None;
 
     for (index, item) in ints.iter().enumerate() {
+        if index > weight {
+            // adding anything would just not be worth it
+            break;
+        }
+
         if complements.contains(&item) {
             let slice = &ints.to_vec()[index + 1..];
+
             for (jndex, other) in slice.iter().enumerate() {
                 if other + item == s {
                     if complements.contains(&other) {
@@ -18,15 +27,9 @@ fn sum_pairs(ints: &[i8], s: i8) -> Option<(i8, i8)> {
                             weight = new_weight;
                             break;
                         }
-                    } else {
-                        continue;
                     }
-                } else {
-                    continue;
                 }
             }
-        } else {
-            continue;
         }
     }
 
