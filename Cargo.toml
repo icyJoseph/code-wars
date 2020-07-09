@@ -1,2 +1,2 @@
 [workspace]
-members = ["integers-recreation-one", "help-the-bookseller", "collatz", "roman-numerals-encoder", "morse-code", "sum-of-pairs", "josephus-problem", "robinsoe-crusoe"]
+members = ["./*/src/.."]
