@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::convert::TryInto;
 
 fn count_kprimes(k: i32, start: i32, end: i32) -> Vec<i32> {
@@ -29,12 +30,115 @@ fn count_kprimes(k: i32, start: i32, end: i32) -> Vec<i32> {
 }
 
 fn puzzle(s: i32) -> i32 {
-    return s;
+    let lists: Vec<Vec<i32>> = [1, 3, 7].iter().map(|k| count_kprimes(*k, 1, s)).collect();
+    let primes: Vec<i32> = lists[0].iter().map(|x| *x).collect();
+    let three: Vec<i32> = lists[1].iter().map(|x| *x).collect();
+    let seven: Vec<i32> = lists[2].iter().map(|x| *x).collect();
+
+    let primes_set: HashSet<&i32> = primes.iter().clone().collect();
+    let three_set: HashSet<&i32> = three.iter().clone().collect();
+    let seven_set: HashSet<&i32> = seven.iter().clone().collect();
+    let three_len = three_set.len();
+    let seven_len = seven_set.len();
+
+    let mut p7 = 0;
+    let mut p3 = 0;
+    let mut p1 = 0;
+
+    let mut number_of_solutions = 0;
+    if seven_len == 0 {
+        return number_of_solutions;
+    }
+
+    loop {
+        // find any solution
+        loop {
+            if p7 > seven_len - 1 {
+                break;
+            }
+
+            let sum = seven[p7] + three[p3];
+
+            if sum >= s {
+                p3 = p3 + 1;
+                if p3 == three_len - 1 {
+                    p3 = 0;
+                    p7 = p7 + 1;
+                    if p7 == seven_len - 1 {
+                        break;
+                    }
+                }
+            }
+
+            let candidate = s - sum;
+
+            if primes_set.contains(&candidate) {
+                p1 = primes.iter().position(|x| *x == candidate).unwrap();
+                number_of_solutions = number_of_solutions + 1;
+                break;
+            } else {
+                p3 = p3 + 1;
+                if p3 == three_len - 1 {
+                    p3 = 0;
+                    p7 = p7 + 1;
+                    if p7 == seven_len - 1 {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if number_of_solutions == 0 {
+            return number_of_solutions;
+        }
+
+        let mut step = 1;
+        loop {
+            // if the next 3 prime has delta respect to the current
+            // with the 7 prime being constant, the next prime has to
+            // account for the delta
+            let delta = three[p3 + step] - three[p3];
+            let candidate = primes[p1] - delta;
+            if candidate % 2 == 0 && candidate != 2 {
+                step = step + 1;
+                if p3 + step == three_len - 1 {
+                    break;
+                }
+                continue;
+            }
+            if candidate < 0 {
+                break;
+            }
+
+            if primes_set.contains(&candidate) {
+                p1 = primes.iter().position(|x| *x == candidate).unwrap();
+                number_of_solutions = number_of_solutions + 1;
+                p3 = p3 + step;
+                step = 1;
+            } else {
+                step = step + 1;
+                if p3 + step == three_len - 1 {
+                    break;
+                }
+            }
+        }
+
+        p7 = p7 + 1;
+        p3 = 0;
+
+        if p7 > seven_len - 1 {
+            break;
+        }
+    }
+
+    return number_of_solutions;
 }
 
 fn main() {
     println!("8-Primes: {:?}", count_kprimes(8, 10000000, 10000200));
     println!("Sum of primes + 3-prime + 7-prime: {}", puzzle(143));
+    println!("Sum of primes + 3-prime + 7-prime: {}", puzzle(300));
+    println!("Sum of primes + 3-prime + 7-prime: {}", puzzle(220));
 }
 
 #[test]
@@ -60,4 +164,6 @@ fn basics_puzzle() {
     testing(100, 0);
     testing(144, 0);
     testing(143, 2);
+    testing(300, 10);
+    testing(220, 6);
 }
