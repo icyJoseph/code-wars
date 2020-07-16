@@ -84,7 +84,7 @@ fn decompose(n: i32, primes: &[i32]) -> Vec<(i32, i32)> {
 
 fn zeroes(base: i32, number: i32) -> i32 {
     use std::cmp;
-    let primes = primes_up_to(cmp::max(number, base));
+    let primes = primes_up_to(cmp::min(number, base));
 
     let decomposed_base = decompose(base, &primes);
     let decomposed_factorial = decompose_factorial(number, &primes, &decomposed_base[..]);
