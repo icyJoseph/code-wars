@@ -1,3 +1,18 @@
+fn combine(num: i32, digits: Vec<i32>, limit: i32) -> Vec<i32> {
+    if limit == 0 {
+        return vec![num];
+    }
+
+    digits
+        .iter()
+        .flat_map(|d| {
+            let rest = digits.iter().filter(|&x| x != d).map(|x| *x).collect();
+            let next = num * 10 + *d;
+            return combine(next, rest, limit - 1);
+        })
+        .collect()
+}
+
 fn count_patterns(start: char, limit: i32) -> i32 {
     if limit < 2 {
         return limit;
@@ -10,24 +25,19 @@ fn count_patterns(start: char, limit: i32) -> i32 {
     let as_number = start as i32 - 64;
 
     use std::convert::TryInto;
-    let limit_u32: u32 = limit.try_into().unwrap();
 
-    let lower_bound = as_number * (10i32).pow(limit_u32 - 1);
-    let upper_bound = lower_bound + (10i32).pow(limit_u32 - 1);
+    let digits: Vec<i32> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let others = digits
+        .iter()
+        .filter(|&x| x != &as_number)
+        .map(|x| *x)
+        .collect();
 
-    println!("{}, {}", lower_bound, upper_bound);
-    let patterns = (lower_bound..upper_bound)
+    let candidates: Vec<i32> = combine(as_number, others, limit - 1);
+
+    let patterns = candidates
+        .iter()
         .filter(|num| {
-            let as_chars: Vec<char> = num.to_string().chars().collect();
-            return !as_chars.contains(&'0');
-        })
-        .filter(|num| {
-            use std::collections::HashSet;
-            let unique: HashSet<char> = num.to_string().chars().collect();
-            return unique.len() == num.to_string().chars().collect::<Vec<char>>().len();
-        })
-        .filter(|num| {
-            println!("{}", num);
             let as_string = num.to_string();
             let indeces: std::ops::Range<usize> = 0..(as_string.len() - 1);
 
@@ -72,9 +82,8 @@ fn count_patterns(start: char, limit: i32) -> i32 {
             }
             return true;
         })
-        .collect::<Vec<i32>>();
+        .collect::<Vec<&i32>>();
 
-    println!("{:?}", patterns);
     return patterns.len().try_into().unwrap();
 }
 
