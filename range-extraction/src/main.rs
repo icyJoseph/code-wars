@@ -6,8 +6,7 @@ mod solution {
     }
 
     pub fn range_extraction(a: &[i32]) -> String {
-        let iter = a
-            .iter()
+        a.iter()
             .scan((0, 0), |state, &value| {
                 let prev_delta = value - state.0;
 
@@ -25,28 +24,23 @@ mod solution {
                 })
             })
             .fold("".to_string(), |state, node| {
-                if node.prev_delta == 1 && node.next_delta != 1 {
-                    let last = state.chars().last().unwrap();
-                    if last == '-' {
-                        format!("{}{}", state, node.value)
-                    } else {
-                        format!("{},{}", state, node.value)
-                    }
-                } else if node.prev_delta == 1 {
-                    let last = state.chars().last().unwrap();
-                    if last == '-' {
-                        state
-                    } else {
-                        format!("{}-", state)
+                if node.prev_delta == 1 {
+                    match node.next_delta {
+                        1 => match state.chars().last() {
+                            Some(x) if x == '-' => state,
+                            _ => format!("{}-", state),
+                        },
+                        _ => match state.chars().last() {
+                            Some(x) if x == '-' => format!("{}{}", state, node.value),
+                            _ => format!("{},{}", state, node.value),
+                        },
                     }
                 } else if state.is_empty() {
                     format!("{}", node.value)
                 } else {
                     format!("{},{}", state, node.value)
                 }
-            });
-
-        return iter;
+            })
     }
 }
 
