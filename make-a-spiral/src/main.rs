@@ -7,7 +7,7 @@ fn spiralize(size: usize) -> Vec<Vec<i8>> {
 
     // Walk the diagonal of the grid, from top left corner,
     // to the center. This means we can solve the problem on
-    // about a number of spots about half of the size of the grid
+    // about a number of steps about half of the size of the grid
     for layer in 0..=center {
         let fill = match layer {
             layer if layer % 2 == 0 => 1,
