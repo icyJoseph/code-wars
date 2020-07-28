@@ -43,14 +43,9 @@ fn last_digit(lst: &[u64]) -> u64 {
         None => 1,
     };
 
-    let mut rest = vec![];
+    let exponents_tower = iterable.map(|&x| x).collect();
 
-    for &exp in iterable {
-        rest.push(exp)
-    }
-
-    let reduced = reduce_exp_tower(rest);
-    let exp = calc_exp(first_exp, reduced);
+    let exp = calc_exp(first_exp, reduce_exp_tower(exponents_tower));
 
     (base % 10).pow((exp) as u32) % 10
 }
